@@ -2,10 +2,11 @@ import { Model, DataTypes } from 'sequelize';
 import sequelize from '../database/db';
 
 interface UserAttributes {
-    id: string;
+    id?: string;
     username: string;
     email: string;
-    password: string;
+    password?: string;
+    googleId?: string;
 }
 
 class User extends Model<UserAttributes>{}
@@ -27,8 +28,13 @@ User.init(
         },
         password: {
             type: DataTypes.STRING,
-            allowNull: false,
+            allowNull: true,
         },
+        googleId:{
+            type: DataTypes.STRING,
+            allowNull: true,
+            unique: true,
+        }
     },
     {
         sequelize,

@@ -17,8 +17,10 @@ function Login() {
 
       const {token, user} = res.data
 
+      localStorage.clear()
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem('userId', user.id)
 
       console.log('Login successful:', res.data);
       setMessage('Login successful!');
@@ -69,7 +71,7 @@ function Login() {
 
       <div className="text-center">
         <button
-          onClick={() => console.log('Google login clicked')}
+          onClick={() => window.location.href = 'http://localhost:5000/auth/google'}
           className="w-full bg-red-500 text-black font-semibold py-2 rounded hover:bg-red-600 transition"
         >
           Login with Google

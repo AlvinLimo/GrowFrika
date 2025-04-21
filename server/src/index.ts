@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import userRoutes from '../routes/userRoutes';
 import sequelize from '../database/db';
+import authRoutes from '../routes/authRoutes';
+import passport from '../utils/passport';
 
 dotenv.config();
 
@@ -11,12 +13,11 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
 
 app.use('/users', userRoutes);
-
-// app.get('/', (_req, res) => {
-//   res.send('Hello, Commander General Sir!');
-// });
+app.use('/auth', authRoutes);
 
 sequelize.authenticate()
   .then(() => {
