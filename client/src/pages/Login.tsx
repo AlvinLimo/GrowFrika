@@ -17,6 +17,13 @@ function Login() {
 
       const {token, user} = res.data
 
+      if (user.isGoogleUser && !user.hasPassword) {
+        setMessage(
+          "It seems you signed up with Google and haven't set a password yet. Please login with Google first, then set your password."
+        );
+        return;
+    }
+
       localStorage.clear()
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
@@ -25,15 +32,22 @@ function Login() {
       console.log('Login successful:', res.data);
       setMessage('Login successful!');
       navigate(`/home/${user.id}`, { replace: true });
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.error('Login error:', error.response?.data || error.message);
-        setMessage(error.response?.data?.message || 'Login failed');
+    } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Login error:', error.response?.data || error.message);
+
+      if (error.response?.data?.reason === 'GOOGLE_ACCOUNT_NO_PASSWORD') {
+        setMessage(
+          "This account was created with Google login. Please sign in with Google first and set your password."
+        );
       } else {
-        console.error('Unexpected error:', error);
-        setMessage('An unexpected error occurred');
+        setMessage(error.response?.data?.message || 'Login failed');
       }
+    } else {
+      console.error('Unexpected error:', error);
+      setMessage('An unexpected error occurred');
     }
+  }
   };
 
   return (
