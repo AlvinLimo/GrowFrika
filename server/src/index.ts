@@ -5,6 +5,7 @@ import userRoutes from '../routes/userRoutes';
 import sequelize from '../database/db';
 import authRoutes from '../routes/authRoutes';
 import passport from '../utils/passport';
+import mlRoutes from '../routes/mlRoutes';
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(passport.initialize());
 
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
+app.use('/api/ml', mlRoutes);
 
 sequelize.authenticate()
   .then(() => {

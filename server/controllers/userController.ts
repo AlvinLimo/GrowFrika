@@ -57,7 +57,8 @@ export const loginUser = async (req: Request, res: Response) => {
         const userData = user.get() as UserAttributes;
 
         if (!userData.password) {
-            return console.log("Wrong Password")
+            return console.log("NO Password set")
+            
         }
         const isMatch = await bcrypt.compare(password, userData.password);
 
