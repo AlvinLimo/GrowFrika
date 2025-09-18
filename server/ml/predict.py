@@ -1,32 +1,38 @@
+import os
+# Suppress TensorFlow messages BEFORE importing tensorflow
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
 import sys
 import json
-import os
 import traceback
 
 def main():
     try:
         if len(sys.argv) < 2:
-            print(json.dumps({"error": "No image path provided"}))
-            sys.exit(1)
-
+            result = {"error": "No image path provided"}
+            print(json.dumps(result))
+            return
+        
         img_path = sys.argv[1]
         
         # Check if image file exists
         if not os.path.exists(img_path):
-            print(json.dumps({"error": f"Image file not found: {img_path}"}))
-            sys.exit(1)
+            result = {"error": f"Image file not found: {img_path}"}
+            print(json.dumps(result))
+            return
         
-        # Import the model here to catch import errors
+        # Import the model - this is where it might be failing
         try:
             from model import predict_image
-        except ImportError as e:
-            print(json.dumps({
+        except Exception as import_error:
+            result = {
                 "error": "Failed to import model", 
-                "details": str(e),
-                "suggestion": "Make sure model.py exists and all dependencies are installed"
-            }))
-            sys.exit(1)
-
+                "details": str(import_error)
+            }
+            print(json.dumps(result))
+            return
+        
         # Make the prediction
         result = predict_image(img_path)
         print(json.dumps(result))
@@ -35,10 +41,13 @@ def main():
         error_info = {
             "error": "Prediction failed",
             "details": str(e),
-            "traceback": traceback.format_exc()
+            "type": str(type(e).__name__)
         }
         print(json.dumps(error_info))
-        sys.exit(1)
+    
+    # Force flush and exit
+    sys.stdout.flush()
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()

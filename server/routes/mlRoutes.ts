@@ -6,40 +6,97 @@ import { spawn } from "child_process";
 
 const router = express.Router();
 
-// Multer setup for image upload
-const upload = multer({ dest: "uploads/" });
+// Multer setup - specify field name and file limits
+const upload = multer({ 
+  dest: "uploads/",
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 // ====== POST /api/ml/predict ======
-router.post("/predict", upload.any(), (req: Request, res: Response): void => {
+router.post("/predict", upload.single("image"), (req: Request, res: Response): void => {
   try {
-    if (!req.files || !(req.files as Express.Multer.File[]).length) {
+    console.log("Received prediction request");
+    
+    if (!req.file) {
+      console.log("No file uploaded");
       res.status(400).json({ error: "No image uploaded" });
       return;
     }
 
-    const file = (req.files as Express.Multer.File[])[0];
-    const imgPath = path.resolve(file.path);
+    console.log("File received:", req.file.filename, req.file.mimetype);
+    const imgPath = path.resolve(req.file.path);
 
-    // Spawn Python process
-    const pythonProcess = spawn("python3", ["ml/predict.py", imgPath]);
+    // Check if Python script exists
+const scriptPath = path.join(process.cwd(), "ml", "predict.py");
+    if (!fs.existsSync(scriptPath)) {
+      console.error("Python script not found:", scriptPath);
+      res.status(500).json({ error: "Prediction script not found" });
+      return;
+    }
+
+    console.log("Spawning Python process...");
+    // Try python3 first, then python
+    const pythonProcess = spawn("python", [scriptPath, imgPath]);
 
     let resultData = "";
+    let errorData = "";
 
     pythonProcess.stdout.on("data", (data: Buffer) => {
       resultData += data.toString();
     });
 
     pythonProcess.stderr.on("data", (data: Buffer) => {
-      console.error(`Python Error: ${data.toString()}`);
+      const errorMsg = data.toString();
+      console.error(`Python Error: ${errorMsg}`);
+      errorData += errorMsg;
+    });
+
+    pythonProcess.on("error", (error) => {
+      console.error("Failed to start Python process:", error);
+      res.status(500).json({ 
+        error: "Failed to start prediction process",
+        details: error.message 
+      });
+      
+      // Clean up
+      fs.unlink(imgPath, () => {});
     });
 
     pythonProcess.on("close", (code: number) => {
+      console.log(`Python process exited with code ${code}`);
+      
       try {
+        if (code !== 0) {
+          throw new Error(`Python process failed with code ${code}: ${errorData}`);
+        }
+        
+        if (!resultData.trim()) {
+          throw new Error("No output from Python script");
+        }
+        
         const result = JSON.parse(resultData);
-        res.json(result);
+        console.log("Prediction result:", result);
+        res.json({
+          prediction: result, // Wrap in prediction object for frontend compatibility
+          success: true
+        });
       } catch (err) {
-        console.error("JSON Parse Error:", err);
-        res.status(500).json({ error: "Failed to parse prediction output" });
+        console.error("Processing Error:", err);
+        res.status(500).json({ 
+          error: "Failed to process prediction",
+          details: err instanceof Error ? err.message : "Unknown error",
+          pythonOutput: resultData,
+          pythonError: errorData
+        });
       }
 
       // Clean up uploaded file
@@ -49,8 +106,11 @@ router.post("/predict", upload.any(), (req: Request, res: Response): void => {
     });
 
   } catch (err) {
-    console.error("Prediction route error:", err);
-    res.status(500).json({ error: "Prediction failed" });
+    console.error("Route error:", err);
+    res.status(500).json({ 
+      error: "Prediction failed",
+      details: err instanceof Error ? err.message : "Unknown error"
+    });
   }
 });
 

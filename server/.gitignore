@@ -1,3 +1,5 @@
 node_modules
 .env
 coffee_disease_final.keras
+uploads
+__pycache__
