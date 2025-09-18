@@ -89,29 +89,50 @@ const location = useLocation();
   };
 
   // Handle send
-  const handleSend = async () => {
+const handleSend = async () => {
   if (selectedImage) {
     const formData = new FormData();
-    formData.append("image", selectedImage);
+    formData.append("image", selectedImage); // Make sure field name is "image"
 
-    const res = await fetch("http://localhost:5000/ml/predict", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch("http://localhost:5000/api/ml/predict", {
+        method: "POST",
+        body: formData,
+        // Don't set Content-Type header - let the browser set it for FormData
+      });
 
-    const data = await res.json();
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
 
-    // Add user image to chat
-    setMessages((prev) => [
-      ...prev,
-      { sender: "user", image: URL.createObjectURL(selectedImage) },
-      {
-        sender: "bot",
-        text: `Prediction: ${data.prediction.class} (Confidence: ${data.prediction.confidence})`,
-      },
-    ]);
+      const data = await res.json();
+      console.log("Response:", data); // Add logging
+      const { predicted_class, confidence } = data.prediction;
 
-    setSelectedImage(null);
+      // Add user image to chat
+      setMessages((prev) => [
+        
+        ...prev,
+        { sender: "user", image: URL.createObjectURL(selectedImage) },
+        {
+          sender: "bot",
+          text: `Prediction: ${predicted_class || data.class} (Confidence: ${(confidence * 100).toFixed(2)}%)`,
+        },
+      ]);
+
+      setSelectedImage(null);
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "user", image: URL.createObjectURL(selectedImage) },
+        {
+          sender: "bot",
+          text: `Error: Failed to predict. Please try again.`,
+        },
+      ]);
+      setSelectedImage(null);
+    }
   }
 };
 
