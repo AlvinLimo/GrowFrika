@@ -1,4 +1,4 @@
-import {  LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, Sun, Moon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -7,6 +7,8 @@ import { IoMenu } from "react-icons/io5";
 interface HeaderProps {
   setIsOpen: (open: boolean) => void;
   isOpen: boolean;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
 interface User {
@@ -15,7 +17,7 @@ interface User {
   email: string;
 }
 
-function Header({ setIsOpen, isOpen }: HeaderProps) {
+function Header({ setIsOpen, darkMode, toggleDarkMode }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -54,20 +56,17 @@ function Header({ setIsOpen, isOpen }: HeaderProps) {
 
       if (!token || !id) {
         console.error("Token or User ID missing. Please log in.");
+        return;
       }
 
       try {
         const response = await axios.get(`http://localhost:5000/users/getbyID/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         setUser(response.data);
       } catch (err: unknown) {
         if (axios.isAxiosError(err) && err.response) {
           console.error("An error occurred:", err);
-          console.error(err.response.data?.message || "Failed to fetch user");
-          console.error("An unexpected error occurred:", err);
-          console.error("An unexpected error occurred");
         }
       }
     };
@@ -84,8 +83,6 @@ function Header({ setIsOpen, isOpen }: HeaderProps) {
 
     if (dropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
     }
 
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -105,50 +102,101 @@ function Header({ setIsOpen, isOpen }: HeaderProps) {
   };
 
   return (
-    <div className="w-full h-16 bg-white shadow-md flex items-center justify-between px-6 fixed top-0 left-0 right-0 z-30">
-     <div className="flex items-center transition-all duration-300">
-        <button onClick={() => setIsOpen(true)} className="text-green-700 mr-0">
-          <IoMenu  size={28} />
-        </button>
-
-        <p
-          className={`text-2xl font-bold text-black transition-all duration-300 ${
-            isOpen ? "ml-28" : "ml-0"
+    <div className={`w-full h-16 shadow-lg flex items-center justify-between px-6 fixed top-0 left-0 right-0 z-30 transition-colors duration-200 ${
+      darkMode 
+        ? 'bg-gray-800 border-b border-gray-700' 
+        : 'bg-white border-b border-gray-200'
+    }`}>
+      <div className="flex items-center transition-all duration-300">
+        <button 
+          onClick={() => setIsOpen(true)} 
+          className={`mr-4 p-2 rounded-lg transition-colors duration-200 ${
+            darkMode 
+              ? 'text-green-400 hover:bg-gray-700' 
+              : 'text-green-600 hover:bg-gray-100'
           }`}
         >
-          GrowFrika
-        </p>
-      </div>
-              
-
-      <div className="relative" ref={dropdownRef}>
-        <button
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="w-10 h-10 bg-green-200 rounded-full flex items-center justify-center text-green-700 font-bold"
-        >
-          {user ? getInitials(user.username) : "U"}
+          <IoMenu size={24} />
         </button>
 
-        {dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-40">
-            <div className="p-4 border-b">
-              <p className="font-semibold">{user?.username}</p>
-              <p className="text-sm text-gray-500">{user?.email}</p>
+        <h1 className={`text-md font-bold transition-colors duration-200 ${
+          darkMode ? 'text-white' : 'text-gray-900'
+        }`}>
+          GrowFrika
+        </h1>
+      </div>
+
+      <div className="flex items-center space-x-3">
+        {/* Dark Mode Toggle */}
+        <button
+          onClick={toggleDarkMode}
+          className={`p-2 rounded-lg transition-colors duration-200 ${
+            darkMode 
+              ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
+              : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+          }`}
+        >
+          {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
+
+        {/* User Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors duration-200 ${
+              darkMode 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-green-200 hover:bg-green-300 text-green-700'
+            }`}
+          >
+            {user ? getInitials(user.username) : "U"}
+          </button>
+
+          {dropdownOpen && (
+            <div className={`absolute right-0 mt-2 w-56 rounded-lg shadow-xl z-40 transition-colors duration-200 ${
+              darkMode 
+                ? 'bg-gray-800 border border-gray-700' 
+                : 'bg-white border border-gray-200'
+            }`}>
+              <div className={`p-4 border-b transition-colors duration-200 ${
+                darkMode ? 'border-gray-700' : 'border-gray-200'
+              }`}>
+                <p className={`font-semibold transition-colors duration-200 ${
+                  darkMode ? 'text-white' : 'text-gray-900'
+                }`}>
+                  {user?.username}
+                </p>
+                <p className={`text-sm transition-colors duration-200 ${
+                  darkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>
+                  {user?.email}
+                </p>
+              </div>
+              
+              <button
+                className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors duration-200 ${
+                  darkMode 
+                    ? 'text-gray-300 hover:bg-gray-700' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                onClick={() => navigate("/profile")}
+              >
+                <Settings size={18} /> Profile Settings
+              </button>
+              
+              <button
+                className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors duration-200 ${
+                  darkMode 
+                    ? 'text-red-400 hover:bg-gray-700' 
+                    : 'text-red-600 hover:bg-gray-100'
+                }`}
+                onClick={handleLogout}
+              >
+                <LogOut size={18} /> Logout
+              </button>
             </div>
-            <button
-              className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
-              onClick={() => navigate("/profile")}
-            >
-              <Settings size={16} /> Profile Settings
-            </button>
-            <button
-              className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
-              onClick={handleLogout}
-            >
-              <LogOut size={16} /> Logout
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

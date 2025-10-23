@@ -1,51 +1,123 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
-
+import { 
+  Home, 
+  Leaf, 
+  Calendar, 
+  Search, 
+  Settings as SettingsIcon,
+  BarChart3
+} from "lucide-react";
 
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  darkMode: boolean;
 }
 
 const navItems = [
-  { name: "Dashboard", href: "/dashboard" },
-  { name: "Plants", href: "/plants" },
-  { name: "Schedule", href: "/schedule" },
-  { name: "Disease Detection", href: "/disease-detection" },
-  { name: "Settings", href: "/settings" },
+  { name: "Home", href: "/home", icon: Home },
+  { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
+  { name: "Plants", href: "/plants", icon: Leaf },
+  { name: "Schedule", href: "/schedule", icon: Calendar },
+  { name: "Disease Detection", href: "/disease-detection", icon: Search },
+  { name: "Settings", href: "/settings", icon: SettingsIcon },
 ];
 
-function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
+function Sidebar({ isOpen, setIsOpen, darkMode }: SidebarProps) {
+  const location = useLocation();
+
   return (
-    <div
-        className={`bg-white text-black h-full fixed shadow-md top-0 left-0 transition-all duration-300 z-40
-          ${isOpen ? "w-48" : "w-0 overflow-hidden"}
-        `}
+    <>
+      {/* Backdrop - Only show on mobile screens */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity duration-300 lg:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div
+        className={`fixed top-0 left-0 h-full shadow-xl z-40 transition-all duration-300 transform ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } ${
+          darkMode 
+            ? 'bg-gray-800 border-r border-gray-700' 
+            : 'bg-white border-r border-gray-200'
+        }`}
+        style={{ width: "280px" }}
       >
-        {/* Close Button */}
-        <div className="flex justify-start items-center p-3">
+        {/* Header - Only show when sidebar is open */}
+        {isOpen && (
+          <div className={`flex justify-between items-center p-4 border-b transition-colors duration-200 ${
+            darkMode ? 'border-gray-700' : 'border-gray-200'
+          }`}>
+            <h2 className={`text-xl font-bold transition-colors duration-200 ${
+              darkMode ? 'text-white' : 'text-gray-900'
+            }`}>
+              Menu
+            </h2>
             <button
-              className="border-2 justify-center items-center border-green-500 hover:border-green-700 hover:outline-none p-2 rounded-full transition-all duration-200 transform hover:scale-110 focus:outline-none"
+              className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
+                darkMode 
+                  ? 'text-gray-400 hover:text-white hover:bg-gray-700' 
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
               onClick={() => setIsOpen(false)}
             >
-              <IoClose  size={20} />
+              <IoClose size={22} />
             </button>
           </div>
-    <div className="p-4 justify-start items-center mt-10">
-      <ul className="space-y-2 ">
-        {navItems.map((item, index) => (
-          <li key={index}>
-            <Link
-              to={item.href}
-              className="block hover:bg-green-600 hover:text-black text-black p-2 rounded transition justify-start items-center text-center"
-            >
-              {item.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-    </div>
+        )}
+
+        {/* Navigation - Only show when sidebar is open */}
+        {isOpen && (
+          <div className="p-4">
+            <ul className="space-y-2">
+              {navItems.map((item, index) => {
+                const isActive = location.pathname === item.href;
+                const IconComponent = item.icon;
+                
+                return (
+                  <li key={index}>
+                    <Link
+                      to={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
+                        isActive 
+                          ? darkMode
+                            ? 'bg-green-600 text-white'
+                            : 'bg-green-100 text-green-700 border border-green-200'
+                          : darkMode
+                            ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                            : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <IconComponent size={20} />
+                      <span className="font-medium">{item.name}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        {/* Footer - Only show when sidebar is open */}
+        {isOpen && (
+          <div className={`absolute bottom-0 left-0 right-0 p-4 border-t transition-colors duration-200 ${
+            darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'
+          }`}>
+            <p className={`text-sm text-center transition-colors duration-200 ${
+              darkMode ? 'text-gray-400' : 'text-gray-500'
+            }`}>
+              GrowFrika v1.0
+            </p>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

@@ -4,17 +4,38 @@ import Header from "./Header";
 
 interface MainLayoutProps {
   children: React.ReactNode;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
-function MainLayout({ children }: MainLayoutProps) {
-  const [isOpen, setIsOpen] = useState(false);
+function MainLayout({ children, darkMode, toggleDarkMode }: MainLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex">
-      <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
-      <div className="flex flex-col flex-1 min-h-screen">
-        <Header setIsOpen={setIsOpen} isOpen={isOpen} />
-        <main className="pt-20 px-6">{children}</main>
+    <div className={`min-h-screen w-full transition-colors duration-200 ${
+      darkMode ? 'bg-gray-900' : 'bg-gray-50'
+    }`}>
+    
+      <Header 
+        isOpen={sidebarOpen} 
+        setIsOpen={setSidebarOpen}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+      />
+      
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        setIsOpen={setSidebarOpen}
+        darkMode={darkMode}
+      />
+      
+      {/* Main Content - Adjust margin based on sidebar state */}
+      <div 
+        className={` transition-all duration-300 ${
+          sidebarOpen ? 'lg:ml-[280px] w-screen' : 'ml-0'
+        }`}
+      >
+        {children}
       </div>
     </div>
   );

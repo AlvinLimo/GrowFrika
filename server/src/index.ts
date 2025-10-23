@@ -20,6 +20,7 @@ app.use(passport.initialize());
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/ml', mlRoutes);
+app.use('/api/chat', mlRoutes);
 
 sequelize.authenticate()
   .then(() => {
