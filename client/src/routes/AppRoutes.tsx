@@ -11,15 +11,14 @@ export const AppRoutes = () => {
     return (
         <Routes>
             <Route element={<AuthLayout/>}>
-                <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/google/success" element={<GoogleSuccess />} />
             </Route>
 
             <Route path="/home/:id" element={
-                <MainLayout>
-                    <Home />
+                <MainLayout darkMode={false} toggleDarkMode={() => {}}>
+                    <Home darkMode={false} />
                 </MainLayout>
 }           />
         </Routes>
