@@ -6,6 +6,7 @@ import sequelize from '../database/db';
 import authRoutes from '../routes/authRoutes';
 import passport from '../utils/passport';
 import mlRoutes from '../routes/mlRoutes';
+import {verifyMailer} from '../utils/mailer'
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ sequelize.authenticate()
   .then(() => {
     console.log('Database connection has been established successfully.');
   })
+  .then(()=> verifyMailer())
   .then(() => {
     app.listen(port, () => {
       console.log(`Server is running on port ${port}`);
