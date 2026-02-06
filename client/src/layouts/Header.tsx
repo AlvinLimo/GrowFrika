@@ -13,10 +13,43 @@ interface HeaderProps {
 }
 
 interface User {
-  id: string;
+  user_id: string;
   username: string;
   email: string;
 }
+
+// Helper function to decode JWT and extract user_id
+const getUserIdFromToken = (token: string): string | null => {
+  try {
+    // Split the token and get the payload (middle part)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      console.error('Invalid token format');
+      return null;
+    }
+
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    
+    // Decode base64
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    
+    const decoded = JSON.parse(jsonPayload);
+    
+    // Extract user_id from the userData object in the token
+    const userId = decoded?.userData?.user_id || decoded?.user_id || null;
+    
+    return userId;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
+};
 
 function Header({ setIsOpen, isOpen, darkMode, toggleDarkMode }: HeaderProps) {
   const location = useLocation();
@@ -44,30 +77,54 @@ function Header({ setIsOpen, isOpen, darkMode, toggleDarkMode }: HeaderProps) {
   // Fetch user data
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem("token");
-      let id = localStorage.getItem("userId");
+      try {
+        const token = localStorage.getItem("token");
+        const user = localStorage.getItem("user");
+        let id = user ? JSON.parse(user).user_id : null;
 
-      // Fallback to user object if userId not found
-      if (!id) {
-        const userString = localStorage.getItem("user");
-        if (userString) {
-          try {
-            const parsedUser = JSON.parse(userString);
-            id = parsedUser?.id;
-          } catch (err) {
-            console.error("Failed to parse user from localStorage", err);
+        // If no userId in localStorage, try to decode it from the token
+        if (!id && token) {
+          console.log('No userId found, attempting to decode from token...');
+          id = getUserIdFromToken(token);
+          if (id) {
+            console.log('Successfully extracted userId from token:', id);
+            // Save it for future use
+            localStorage.setItem("userId", id);
+          } else {
+            console.error('Failed to extract userId from token');
           }
         }
-      }
 
-      // This should never happen due to ProtectedRoute, but just in case
-      if (!token || !id) {
-        console.error("Token or User ID missing. Redirecting to login...");
-        handleLogout();
-        return;
-      }
+        // Fallback to user object if userId still not found
+        if (!id) {
+          console.log('Checking for user object in localStorage...');
+          const userString = localStorage.getItem("user");
+          if (userString) {
+            try {
+              const parsedUser = JSON.parse(userString);
+              id = parsedUser?.user_id || parsedUser?.id;
+              if (id) {
+                localStorage.setItem("userId", id);
+              }
+            } catch (err) {
+              console.error("Failed to parse user from localStorage", err);
+            }
+          }
+        }
 
-      try {
+        // Final check
+        if (!token) {
+          console.error("No token found. Redirecting to login...");
+          handleLogout();
+          return;
+        }
+
+        if (!id) {
+          console.error("No userId found after all attempts. Redirecting to login...");
+          handleLogout();
+          return;
+        }
+
         const response = await axios.get(`http://localhost:5000/users/getbyID/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -75,8 +132,12 @@ function Header({ setIsOpen, isOpen, darkMode, toggleDarkMode }: HeaderProps) {
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
           console.error("Error fetching user:", err);
+          console.error("Error response:", err.response?.data);
+          console.error("Error status:", err.response?.status);
+          
           // If unauthorized, logout
           if (err.response?.status === 401 || err.response?.status === 403) {
+            console.log('Unauthorized - logging out');
             handleLogout();
           }
         }
@@ -104,6 +165,7 @@ function Header({ setIsOpen, isOpen, darkMode, toggleDarkMode }: HeaderProps) {
   }, [dropdownOpen]);
 
   const handleLogout = () => {
+    console.log('Logging out - clearing localStorage');
     localStorage.clear();
     navigate("/login", { replace: true });
   };
@@ -138,11 +200,11 @@ function Header({ setIsOpen, isOpen, darkMode, toggleDarkMode }: HeaderProps) {
         </button>
 
         {/* Logo */}
-        <h1 className={`text-lg font-bold transition-colors duration-200 ${
+        <h2 className={`text-xl font-bold transition-colors duration-200 ${
           darkMode ? 'text-white' : 'text-gray-900'
         }`}>
           GrowFrika
-        </h1>
+        </h2>
       </div>
 
       <div className="flex items-center space-x-3">
@@ -209,7 +271,6 @@ function Header({ setIsOpen, isOpen, darkMode, toggleDarkMode }: HeaderProps) {
                 }`}
                 onClick={() => {
                   setDropdownOpen(false);
-                  // You'll need to add this prop to Header
                   window.dispatchEvent(new CustomEvent('openProfile'));
                 }}
               >

@@ -3,7 +3,7 @@ import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../database/db'; // Your database config
 
 interface UserAttributes {
-    id: string;
+    user_id: string;
     username: string;
     email: string;
     password?: string;
@@ -17,10 +17,10 @@ interface UserAttributes {
     updatedAt?: Date;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'googleId' | 'password' | 'profilePicture' | 'verificationToken'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, 'user_id' | 'googleId' | 'password' | 'profilePicture' | 'verificationToken'> {}
 
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
-    public id!: string;
+    public user_id!: string;
     public username!: string;
     public email!: string;
     public password?: string;
@@ -37,8 +37,8 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
 
 User.init(
     {
-        id: {
-            type: DataTypes.UUID,
+        user_id: {
+            type: DataTypes.STRING,
             primaryKey: true,
             defaultValue: DataTypes.UUIDV4
         },

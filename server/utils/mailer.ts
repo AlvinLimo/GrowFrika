@@ -1,16 +1,16 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-// Initialize Resend with your API key
-const resend = new Resend(process.env.RESEND_API_KEY!);
-
-// Email configuration
-const EMAIL_CONFIG = {
-    from: 'GrowFrika <onboarding@resend.dev>', // Resend's default sender
-    replyTo: process.env.EMAIL_USER, // Your Outlook email for replies
-};
+// Create Gmail transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER, // Your Gmail address
+        pass: process.env.GOOGLE_APP_PASSWORD // Your Gmail App Password
+    }
+});
 
 /**
- * Send an email using Resend
+ * Send an email using Gmail
  * @param to - Recipient email address
  * @param subject - Email subject
  * @param html - Email HTML content
@@ -23,17 +23,16 @@ export const sendEmail = async (
     text?: string
 ) => {
     try {
-        const data = await resend.emails.send({
-            from: EMAIL_CONFIG.from,
-            replyTo: EMAIL_CONFIG.replyTo,
+        const info = await transporter.sendMail({
+            from: `"GrowFrika" <${process.env.EMAIL_USER}>`,
             to,
             subject,
             html,
-            text, // Optional plain text fallback
+            text
         });
 
-        console.log('Email sent successfully:', data);
-        return { success: true, data };
+        console.log('Email sent successfully:', info.messageId);
+        return { success: true, messageId: info.messageId };
     } catch (error) {
         console.error('Error sending email:', error);
         throw error;
@@ -50,17 +49,16 @@ export const sendBulkEmail = async (
     text?: string
 ) => {
     try {
-        const data = await resend.emails.send({
-            from: EMAIL_CONFIG.from,
-            replyTo: EMAIL_CONFIG.replyTo,
-            to,
+        const info = await transporter.sendMail({
+            from: `"GrowFrika" <${process.env.EMAIL_USER}>`,
+            to: to.join(', '),
             subject,
             html,
-            text,
+            text
         });
 
-        console.log('Bulk email sent successfully:', data);
-        return { success: true, data };
+        console.log('Bulk email sent successfully:', info.messageId);
+        return { success: true, messageId: info.messageId };
     } catch (error) {
         console.error('Error sending bulk email:', error);
         throw error;
@@ -68,18 +66,13 @@ export const sendBulkEmail = async (
 };
 
 /**
- * Verify Resend configuration
+ * Verify Gmail configuration
  */
 export const verifyMailer = async () => {
     try {
-        if (!process.env.RESEND_API_KEY) {
-            throw new Error('RESEND_API_KEY is not configured in environment variables');
-        }
-
-        console.log('Mailer is configured correctly with Resend');
-        console.log('Sending from:', EMAIL_CONFIG.from);
-        console.log('Replies will go to:', EMAIL_CONFIG.replyTo);
-        
+        await transporter.verify();
+        console.log('Mailer is configured correctly with Gmail');
+        console.log('Sending from:', process.env.EMAIL_USER);
         return { success: true };
     } catch (err) {
         console.error('Error configuring mailer:', err);

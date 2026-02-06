@@ -39,7 +39,7 @@ function Login() {
       localStorage.setItem('userId', user.id);
 
       console.log('Login successful:', res.data);
-      navigate('/home', { replace: true });
+      navigate(`/home/:id`, { replace: true });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error('Login error:', error.response?.data || error.message);
@@ -65,9 +65,9 @@ function Login() {
   };
 
   return (
-    <div className="w-full ">
+    <div className="w-128 ">
       {/* Login Card */}
-      <div className="bg-white rounded-2xl shadow-2xl p-8 space-y-6">
+      <div className="bg-white rounded-2xl shadow-2xl p-4 mt-6 space-y-6">
         {/* Header */}
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
@@ -209,6 +209,8 @@ function Login() {
           Privacy Policy
         </a>
       </p>
+      <br />
+      <p className="text-center text-xs text-gray-400">Visit our <a href="/" className="text-green-600 hover:text-green-700 transition-colors">website</a> for more information.</p>
     </div>
   );
 }

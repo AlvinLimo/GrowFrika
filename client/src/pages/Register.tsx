@@ -70,7 +70,7 @@ function Register() {
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-screen max-w-md">
       {/* Register Card */}
       <div className="bg-white rounded-2xl shadow-2xl p-8 space-y-6">
         {/* Header */}
@@ -269,6 +269,8 @@ function Register() {
           Privacy Policy
         </a>
       </p>
+      <br />
+      <p className="text-center text-xs text-gray-400">Visit our <a href="/" className="text-green-600 hover:text-green-700 transition-colors">website</a> for more information.</p>
     </div>
   );
 }
