@@ -38,7 +38,7 @@ export const createUser = async (req: Request, res: Response) => {
         const verificationToken = jwt.sign({ email }, JWT_SECRET, { expiresIn: '24h' });
 
         const user = await User.create({
-            id,
+            user_id: id,
             username,
             email,
             password: hashedPassword,
@@ -50,7 +50,7 @@ export const createUser = async (req: Request, res: Response) => {
         });
 
         // Send verification email
-        const verificationUrl = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
+        const verificationUrl = `${FRONTEND_URL}verify-email?token=${verificationToken}`;
         
         await transporter.sendEmail(
             email,
@@ -170,7 +170,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
         const { password: _, verificationToken, ...safeUser } = userData;
 
-        const token = jwt.sign({ id: userData.id }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ user_id: userData.user_id }, JWT_SECRET, { expiresIn: '7d' });
 
         console.log('User logged in:', safeUser);
         res.status(200).json({ user: safeUser, token });
@@ -203,11 +203,11 @@ export const getUserByID = async (req: Request, res: Response) => {
 
 // Update user profile
 export const updateUser = async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const { user_id } = req.params;
     const { username, email, currentPassword, newPassword } = req.body;
 
     try {
-        const user = await User.findByPk(id);
+        const user = await User.findByPk(user_id);
 
         if (!user) {
             res.status(404).json({ message: 'User not found' });
@@ -244,7 +244,7 @@ export const updateUser = async (req: Request, res: Response) => {
             const existingUser = await User.findOne({ 
                 where: { 
                     username,
-                    id: { [Op.ne]: id } // Exclude current user
+                    user_id: { [Op.ne]: user_id } // Exclude current user
                 } 
             });
 
@@ -263,7 +263,7 @@ export const updateUser = async (req: Request, res: Response) => {
             const existingUser = await User.findOne({ 
                 where: { 
                     email,
-                    id: { [Op.ne]: id }
+                    user_id: { [Op.ne]: user_id }
                 } 
             });
 
@@ -279,7 +279,7 @@ export const updateUser = async (req: Request, res: Response) => {
         }
 
         // Fetch updated user without sensitive data
-        const updatedUser = await User.findByPk(id, {
+        const updatedUser = await User.findByPk(user_id, {
             attributes: { exclude: ['password', 'verificationToken'] }
         });
 
@@ -295,11 +295,11 @@ export const updateUser = async (req: Request, res: Response) => {
 
 // Set password for Google users
 export const setPassword = async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const { user_id } = req.params;
     const { password } = req.body;
 
     try {
-        const user = await User.findByPk(id);
+        const user = await User.findByPk(user_id);
 
         if (!user) {
             res.status(404).json({ message: 'User not found' });

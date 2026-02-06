@@ -1,16 +1,16 @@
 // src/layouts/MainLayout.tsx
 import { useState, useEffect } from "react";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import Profile from "../pages/Profile";
 
 interface MainLayoutProps {
-  children: React.ReactNode;
   darkMode: boolean;
   toggleDarkMode: () => void;
 }
 
-function MainLayout({ children, darkMode, toggleDarkMode }: MainLayoutProps) {
+function MainLayout({ darkMode, toggleDarkMode }: MainLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [userId, setUserId] = useState('');
@@ -35,7 +35,7 @@ function MainLayout({ children, darkMode, toggleDarkMode }: MainLayoutProps) {
   }, []);
 
   return (
-    <div className={`min-h-screen w-full transition-colors duration-200 ${
+    <div className={`min-h-screen w-screen transition-colors duration-200 ${
       darkMode ? 'bg-gray-900' : 'bg-gray-50'
     }`}>
       {/* Fixed Header */}
@@ -53,14 +53,14 @@ function MainLayout({ children, darkMode, toggleDarkMode }: MainLayoutProps) {
         darkMode={darkMode}
       />
       
-      {/* Main Content Area */}
+      {/* Main Content Area - Outlet renders child routes */}
       <div 
         className={`pt-16 min-h-screen transition-all duration-300 ${
           sidebarOpen ? 'lg:ml-[280px]' : 'ml-0'
         }`}
       >
-        <div className="p-6 w-full">
-          {children}
+        <div className=" w-full h-full">
+          <Outlet /> {/* This renders Home or other protected routes */}
         </div>
       </div>
 
