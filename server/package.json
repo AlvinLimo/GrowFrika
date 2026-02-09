@@ -8,11 +8,14 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only ./src/index.ts",
     "build": "tsc",
-    "start": "node --import=extensionless/register ./src/index.ts"
+    "start": "node --experimental-strip-types --import=extensionless/register ./src/index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "extensionless": {
+  "lookFor": ["ts", "js"]
+},
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
     "@types/cors": "^2.8.17",
