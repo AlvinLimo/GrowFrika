@@ -14,7 +14,7 @@ router.get('/google', passport.authenticate('google', {
 router.get('/google/callback', passport.authenticate('google', { session:false}),(req, res) => {
     const user = req.user as any
     const token = jwt.sign({ userData: user}, process.env.JWT_SECRET!, { expiresIn: '1h' })
-    res.redirect(`http://localhost:5173/google/success?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`);
+    res.redirect(`${process.env.CLLIENT_URL}/google/success?token=${token}&user=${encodeURIComponent(JSON.stringify(user))}`);
 })
 
 export default router
