@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only ./src/index.ts",
     "build": "tsc",
-    "start": "node ./dist/index.js"
+    "start": "node --import=extensionless/register ./src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +26,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "extensionless": "^2.0.6",
     "firebase": "^11.6.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.503.0",
@@ -36,6 +38,7 @@
     "resend": "^6.4.0",
     "sequelize": "^6.37.7",
     "server": "file:",
+    "tsx": "^4.21.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
