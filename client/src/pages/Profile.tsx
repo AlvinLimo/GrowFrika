@@ -50,7 +50,7 @@ function ProfileModal({ isOpen, onClose, darkMode, userId }: ProfileModalProps) 
     const token = localStorage.getItem('token');
 
     try {
-      const response = await axios.get(`http://localhost:5000/users/getbyID/${userId}`, {
+      const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/users/getbyID/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -75,7 +75,7 @@ function ProfileModal({ isOpen, onClose, darkMode, userId }: ProfileModalProps) 
 
     try {
       const response = await axios.patch(
-        `http://localhost:5000/users/update/${userId}`,
+        `${import.meta.env.VITE_SERVER_URL}/users/update/${userId}`,
         { username, email },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -120,14 +120,14 @@ function ProfileModal({ isOpen, onClose, darkMode, userId }: ProfileModalProps) 
       // If user has a password, use update endpoint
       if (user?.hasPassword) {
         await axios.patch(
-          `http://localhost:5000/users/update/${userId}`,
+          `${import.meta.env.VITE_SERVER_URL}/users/update/${userId}`,
           { currentPassword, newPassword },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         // If Google user setting first password, use set-password endpoint
         await axios.post(
-          `http://localhost:5000/users/set-password/${userId}`,
+          `${import.meta.env.VITE_SERVER_URL}/users/set-password/${userId}`,
           { password: newPassword },
           { headers: { Authorization: `Bearer ${token}` } }
         );

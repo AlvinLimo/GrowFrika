@@ -37,7 +37,7 @@ function Register() {
     }
 
     try {
-      const res = await axios.post('http://localhost:5000/users/register', {
+      const res = await axios.post(`${import.meta.env.VITE_SERVER_URL}/users/register`, {
         username,
         email,
         password,
@@ -66,7 +66,7 @@ function Register() {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = 'http://localhost:5000/auth/google';
+    window.location.href = `${import.meta.env.VITE_SERVER_URL}/auth/google`;
   };
 
   return (

@@ -18,7 +18,7 @@ function Login() {
     setMessage('');
 
     try {
-      const res = await axios.post('http://localhost:5000/users/login', {
+      const res = await axios.post(`${import.meta.env.VITE_SERVER_URL}/users/login`, {
         emailorusername: emailOrUsername,
         password: password,
       });
@@ -61,7 +61,7 @@ function Login() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:5000/auth/google';
+    window.location.href = `${import.meta.env.VITE_SERVER_URL}/auth/google`;
   };
 
   return (

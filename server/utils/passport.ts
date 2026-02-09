@@ -47,7 +47,6 @@ passport.use(
 
                 // Create new user
                 const newUser = await User.create({
-                    id: uuidv4(),
                     email: email!,
                     username: profile.displayName || email!.split('@')[0],
                     googleId: profile.id,
