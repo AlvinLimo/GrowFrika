@@ -20,7 +20,7 @@ interface HomeProps {
   darkMode: boolean;
 }
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = `${import.meta.env.VITE_SERVER_URL}/api`;
 
 const Home: React.FC<HomeProps> = ({ darkMode }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);

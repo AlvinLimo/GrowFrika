@@ -26,7 +26,7 @@ function VerifyEmail() {
 
   const verifyEmail = async (token: string) => {
     try {
-      const response = await axios.post('http://localhost:5000/users/verify-email', {
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/users/verify-email`, {
         token
       });
 

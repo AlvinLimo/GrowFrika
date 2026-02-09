@@ -185,7 +185,9 @@ export const getUserByID = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
-        const user = await User.findByPk(id, {
+        // Ensure id is a string (not an array)
+        const userId = Array.isArray(id) ? id[0] : id;
+        const user = await User.findByPk(userId, {
             attributes: { exclude: ['password', 'verificationToken'] }
         });
 
@@ -207,7 +209,9 @@ export const updateUser = async (req: Request, res: Response) => {
     const { username, email, currentPassword, newPassword } = req.body;
 
     try {
-        const user = await User.findByPk(user_id);
+        // Ensure user_id is a string (not an array)
+        const userId = Array.isArray(user_id) ? user_id[0] : user_id;
+        const user = await User.findByPk(userId);
 
         if (!user) {
             res.status(404).json({ message: 'User not found' });
@@ -241,10 +245,12 @@ export const updateUser = async (req: Request, res: Response) => {
         // Update username if provided
         if (username && username !== userData.username) {
             // Check if username is taken
+            // Ensure user_id is a string
+            const userIdStr = Array.isArray(user_id) ? user_id[0] : user_id;
             const existingUser = await User.findOne({ 
                 where: { 
                     username,
-                    user_id: { [Op.ne]: user_id } // Exclude current user
+                    user_id: { [Op.ne]: userIdStr } // Exclude current user
                 } 
             });
 
@@ -260,10 +266,12 @@ export const updateUser = async (req: Request, res: Response) => {
 
         // Update email if provided (would require re-verification in production)
         if (email && email !== userData.email) {
+            // Ensure user_id is a string
+            const userIdStr = Array.isArray(user_id) ? user_id[0] : user_id;
             const existingUser = await User.findOne({ 
                 where: { 
                     email,
-                    user_id: { [Op.ne]: user_id }
+                    user_id: { [Op.ne]: userIdStr }
                 } 
             });
 
@@ -279,7 +287,7 @@ export const updateUser = async (req: Request, res: Response) => {
         }
 
         // Fetch updated user without sensitive data
-        const updatedUser = await User.findByPk(user_id, {
+        const updatedUser = await User.findByPk(userId, {
             attributes: { exclude: ['password', 'verificationToken'] }
         });
 
@@ -299,7 +307,9 @@ export const setPassword = async (req: Request, res: Response) => {
     const { password } = req.body;
 
     try {
-        const user = await User.findByPk(user_id);
+        // Ensure user_id is a string (not an array)
+        const userId = Array.isArray(user_id) ? user_id[0] : user_id;
+        const user = await User.findByPk(userId);
 
         if (!user) {
             res.status(404).json({ message: 'User not found' });
