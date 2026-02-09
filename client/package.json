@@ -13,7 +13,7 @@
     "@react-oauth/google": "^0.12.1",
     "@supabase/supabase-js": "^2.49.4",
     "@tailwindcss/vite": "^4.1.4",
-    "axios": "^1.8.4",
+    "axios": "^1.13.5",
     "client": "file:",
     "components": "^0.1.0",
     "framer-motion": "^12.29.0",
@@ -24,7 +24,8 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.5.0",
     "tailwindcss": "^4.1.4",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "vercel": "^50.13.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
