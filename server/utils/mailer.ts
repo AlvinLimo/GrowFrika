@@ -5,8 +5,8 @@ import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false, // Use TLS
   family: 4, // ← ADD THIS to force IPv4
   auth: {
     user: process.env.EMAIL_USER,
