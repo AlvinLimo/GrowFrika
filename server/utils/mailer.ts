@@ -1,16 +1,18 @@
 import nodemailer from 'nodemailer';
 
 // Create Gmail transporter
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
+
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER, // Your Gmail address
-        pass: process.env.GOOGLE_APP_PASSWORD // Your Gmail App Password
-    }
-});
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  family: 4, // ← ADD THIS to force IPv4
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.GOOGLE_APP_PASSWORD
+  }
+} as SMTPTransport.Options);
 
 /**
  * Send an email using Gmail
