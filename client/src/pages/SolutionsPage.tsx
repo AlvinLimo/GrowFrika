@@ -65,19 +65,19 @@ export default function SolutionsPage() {
               ))}
             </ul>
             <div className="flex flex-wrap gap-4">
-              <a 
-                href="/home" 
+              <Link
+                to="/home" 
                 target="_blank"
                 className="bg-gray-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-black transition flex items-center gap-2"
               >
                 Try the Model <span>→</span>
-              </a>
-              <a 
-                href="YOUR_DOCUMENTATION_LINK" 
+              </Link>
+              <Link 
+                to="YOUR_DOCUMENTATION_LINK" 
                 className="border border-gray-200 px-8 py-4 rounded-xl font-bold hover:bg-gray-50 transition"
               >
                 View API Docs
-              </a>
+              </Link>
             </div>
           </motion.div>
           
