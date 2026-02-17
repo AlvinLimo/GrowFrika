@@ -39,7 +39,7 @@ function Login() {
       localStorage.setItem('userId', user.id);
 
       console.log('Login successful:', res.data);
-      navigate(`/home/:id`, { replace: true });
+      navigate(`/home`, { replace: true });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error('Login error:', error.response?.data || error.message);
