@@ -1,12 +1,13 @@
 import { Sequelize } from 'sequelize';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const dbUrl = process.env.DATABASE_URL;
 
+// The centralized config loader (`src/config.ts`) will have already thrown an
+// error if DATABASE_URL is not set, so we can safely use the `!` operator here
+// after checking for its presence.
 if (!dbUrl) {
-  throw new Error('DATABASE_URL environment variable is not set');
+  // This should not be reached if the config is loaded correctly
+  throw new Error('DATABASE_URL is not defined. Please check server configuration.');
 }
 
 const sequelize = new Sequelize(dbUrl, {
@@ -18,7 +19,8 @@ const sequelize = new Sequelize(dbUrl, {
       require: true,
       rejectUnauthorized: false,
     },
-    host: undefined,
+    // The host is derived from the connection string, so this is not needed
+    // host: undefined, 
   },
   pool: {
     max: 5,
