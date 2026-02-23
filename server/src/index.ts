@@ -1,5 +1,7 @@
+// Load environment variables first
+import './config';
+
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import userRoutes from '../routes/userRoutes';
 import sequelize from '../database/db';
@@ -7,8 +9,6 @@ import authRoutes from '../routes/authRoutes';
 import passport from '../utils/passport';
 import mlRoutes from '../routes/mlRoutes';
 import { verifyMailer } from '../utils/mailer';
-
-dotenv.config();
 
 const app = express();
 const port = Number(process.env.PORT) || 10000;
