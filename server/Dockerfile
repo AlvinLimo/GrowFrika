@@ -12,21 +12,18 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy server package files
-COPY server/package*.json ./server/
-WORKDIR /app/server
+# Copy package files (context is already the server folder)
+COPY package*.json ./
 RUN npm install
 
-# Copy server ML requirements
-COPY server/requirements.txt ./
+# Copy ML requirements
+COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the server code
-WORKDIR /app
-COPY server ./server
+# Copy all server code (context is already the server folder)
+COPY . .
 
-# Build server
-WORKDIR /app/server
+# Build the server
 RUN npm run build
 
 # Create uploads directory
