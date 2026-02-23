@@ -2,11 +2,11 @@
 FROM node:22-bullseye
 
 # Install Python and build essentials
-RUN apt-get update && apt-get install -y 
-    python3 
-    python3-pip 
-    libgl1-mesa-glx 
-    libglib2.0-0 
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
