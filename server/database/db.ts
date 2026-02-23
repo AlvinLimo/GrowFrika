@@ -1,27 +1,31 @@
-import {Sequelize} from 'sequelize';
+import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const sequelize = new Sequelize(process.env.DATABASE_URL!, {
+const dbUrl = process.env.DATABASE_URL;
+
+if (!dbUrl) {
+  throw new Error('DATABASE_URL environment variable is not set');
+}
+
+const sequelize = new Sequelize(dbUrl, {
   dialect: 'postgres',
   protocol: 'postgres',
   logging: false,
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: false // Render/most hosts need this
+      rejectUnauthorized: false,
     },
-    // Force IPv4 for database connection too
-    host: undefined, // Let dialectOptions handle it
+    host: undefined,
   },
-  // Add connection pool settings for stability
   pool: {
     max: 5,
     min: 0,
     acquire: 30000,
-    idle: 10000
-  }
+    idle: 10000,
+  },
 });
 
 export default sequelize;
