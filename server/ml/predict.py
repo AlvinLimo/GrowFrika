@@ -5,11 +5,11 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import sys
 import json
-import numpy as np
+import numpy as np # pyright: ignore[reportMissingImports]
 from PIL import Image
-from openai import OpenAI
+from openai import OpenAI # pyright: ignore[reportMissingImports]
 from model import predict_image  # Ensure this import is correct
-import tensorflow as tf
+import tensorflow as tf # pyright: ignore[reportMissingModuleSource]
 
 # 🔹 Setup OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -179,42 +179,6 @@ def get_llm_response(prediction):
         prediction["llm_response"] = f"Error getting LLM response: {str(e)}"
         return prediction
 
-
-def main():
-    try:
-        if len(sys.argv) < 2:
-            result = {"error": "No image path provided", "status": "error"}
-            print(json.dumps(result))
-            return
-
-        img_path = sys.argv[1]
-
-        # Check if image file exists
-        if not os.path.exists(img_path):
-            result = {"error": f"Image file not found: {img_path}", "status": "error"}
-            print(json.dumps(result))
-            return
-
-        # Run prediction (validation is now inside predict_image function in model.py)
-        result = predict_image(img_path)
-
-        # Add LLM response based on status
-        result = get_llm_response(result)
-
-        print(json.dumps(result))
-
-    except Exception as e:
-        error_info = {
-            "error": "Prediction failed",
-            "details": str(e),
-            "type": str(type(e).__name__),
-            "status": "error"
-        }
-        print(json.dumps(error_info))
-
-    # Force flush and exit
-    sys.stdout.flush()
-    sys.exit(0)
 
 def main():
     try:

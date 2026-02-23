@@ -21,6 +21,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
+
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/ml', mlRoutes);
