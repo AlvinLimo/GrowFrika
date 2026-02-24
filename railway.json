@@ -6,6 +6,7 @@
       "providers": ["node", "python"],
       "buildCmds": [
         "npm install --prefix server",
+        "npm run build --prefix server",
         "pip install -r server/requirements.txt"
       ]
     }
