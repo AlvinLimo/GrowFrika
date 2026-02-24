@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -13,6 +13,9 @@
     "@react-oauth/google": "^0.12.1",
     "@supabase/supabase-js": "^2.49.4",
     "@tailwindcss/vite": "^4.1.4",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react-swc": "^3.8.0",
     "axios": "^1.13.5",
     "client": "file:",
     "components": "^0.1.0",
@@ -24,20 +27,17 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.5.0",
     "tailwindcss": "^4.1.4",
+    "typescript": "~5.7.2",
     "uuid": "^13.0.0",
-    "vercel": "^50.13.2"
+    "vercel": "^50.13.2",
+    "vite": "^6.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
-    "@vitejs/plugin-react-swc": "^3.8.0",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
-    "typescript": "~5.7.2",
-    "typescript-eslint": "^8.24.1",
-    "vite": "^6.2.0"
+    "typescript-eslint": "^8.24.1"
   }
 }

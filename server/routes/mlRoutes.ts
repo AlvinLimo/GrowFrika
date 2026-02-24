@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, {type Request, type Response } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -6,6 +6,7 @@ import { spawn } from "child_process";
 import { authenticateToken } from "../middleware/jwtauth";
 import { Conversation } from "../models/Conversations"
 import { Message } from "../models/Messages";
+import supabase from "../config/supabase";
 
 Conversation.hasMany(Message, {
     foreignKey: 'convo_id',
@@ -26,6 +27,29 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 
+// Helper to upload to Supabase
+async function uploadToSupabase(file: Express.Multer.File): Promise<string> {
+  const fileContent = fs.readFileSync(file.path);
+  const fileName = `${Date.now()}-${file.originalname}`;
+  
+  const { data, error } = await supabase.storage
+    .from('growfrika-images') // Make sure this bucket exists or change the name
+    .upload(fileName, fileContent, {
+      contentType: file.mimetype,
+      upsert: true
+    });
+
+  if (error) {
+    throw new Error(`Supabase upload failed: ${error.message}`);
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('growfrika-images')
+    .getPublicUrl(fileName);
+
+  return publicUrl;
+}
+
 // Store conversation histories temporarily (still needed for ML context)
 const conversationHistories = new Map<string, Array<{role: string, content: string}>>();
 
@@ -43,6 +67,17 @@ router.post("/predict", authenticateToken, upload.single("image"), async (req: R
     if(!user_id){
       res.status(401).json({ error: "User not authenticated" });
       return;
+    }
+
+    // Upload to Supabase first for persistence
+    let imageUrl = "";
+    try {
+      imageUrl = await uploadToSupabase(req.file);
+      console.log("✅ Image uploaded to Supabase:", imageUrl);
+    } catch (uploadErr) {
+      console.error("❌ Supabase upload error:", uploadErr);
+      // Fallback to local path if Supabase fails (though it won't persist)
+      imageUrl = `/uploads/${req.file.filename}`;
     }
 
     const imgPath = path.resolve(req.file.path);
@@ -103,9 +138,6 @@ router.post("/predict", authenticateToken, upload.single("image"), async (req: R
 
         const convo_id = conversation.getDataValue('convo_id');
         
-        // Save the image URL
-        const imageUrl = `/uploads/${req.file!.filename}`;
-
         // Save user's initial message (the image)
         const userMessage = await Message.create({
           convo_id,
@@ -178,11 +210,6 @@ router.post("/predict", authenticateToken, upload.single("image"), async (req: R
         conversationHistories.set(convo_id, [initialContext]);
         
         console.log("✅ Prediction completed and saved to database");
-        console.log("   Conversation ID:", convo_id);
-        console.log("   Status:", result.status);
-        console.log("   User Message ID:", userMessage.message_id);
-        console.log("   Assistant Message ID:", assistantMessage.message_id);
-        console.log("   Assistant Content:", llmResponse); // Debug log
         
         // Return consistent structure
         res.json({ 

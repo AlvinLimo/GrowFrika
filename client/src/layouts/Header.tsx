@@ -125,7 +125,7 @@ function Header({ setIsOpen, isOpen, darkMode, toggleDarkMode }: HeaderProps) {
           return;
         }
 
-        const response = await axios.get(`http://localhost:5000/users/getbyID/${id}`, {
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/users/getbyID/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data);

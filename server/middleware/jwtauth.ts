@@ -1,5 +1,5 @@
 // authMiddleware.ts
-import { Request, Response, NextFunction } from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 interface JWTPayload {

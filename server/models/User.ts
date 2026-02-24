@@ -1,5 +1,5 @@
 // backend/models/User.ts
-import { DataTypes, Model, Optional } from 'sequelize';
+import { DataTypes, Model, type Optional } from 'sequelize';
 import sequelize from '../database/db'; // Your database config
 
 interface UserAttributes {
