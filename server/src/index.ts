@@ -13,8 +13,10 @@ import { verifyMailer } from '../utils/mailer';
 const app = express();
 const port = Number(process.env.PORT) || 10000;
 
+const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173', 
+  origin: clientUrl, 
   credentials: true
 }));
 app.use(express.json());  
