@@ -16,14 +16,14 @@ interface ConversationAttributes {
 interface ConversationCreationAttributes extends Optional<ConversationAttributes, 'convo_id' | 'is_archived' | 'last_message_at'> {}
 
 export class Conversation extends Model<ConversationAttributes, ConversationCreationAttributes> implements ConversationAttributes {
-    public convo_id!: string;
-    public user_id!: string;
-    public title!: string;
-    public category?: string;
-    public last_message_at!: Date;
-    public is_archived!: boolean;
-    public readonly created_at!: Date;
-    public readonly updated_at!: Date;
+    declare convo_id: string;
+    declare user_id: string;
+    declare title: string;
+    declare category?: string;
+    declare last_message_at: Date;
+    declare is_archived: boolean;
+    declare readonly created_at: Date;
+    declare readonly updatedAt: Date;
 }
 
 Conversation.init(
