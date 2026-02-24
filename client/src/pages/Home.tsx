@@ -555,7 +555,7 @@ const handleImageUpload = async () => {
                         )}
                         {msg.text && (
                           <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                            {msg.text.split('**').map((part, i) => 
+                            {(msg.text || '').split('**').map((part, i) => 
                               i % 2 === 1 ? <strong key={i}>{part}</strong> : part
                             )}
                           </div>
