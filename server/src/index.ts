@@ -10,10 +10,15 @@ import mlRoutes from '../routes/mlRoutes';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 10000;
 
-app.use(cors());
-app.use(express.json());
+const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+
+app.use(cors({
+  origin: clientUrl, 
+  credentials: true
+}));
+app.use(express.json());  
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
