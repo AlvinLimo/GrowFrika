@@ -20,8 +20,6 @@ function GoogleSuccess() {
         localStorage.setItem("user", decodedUser);
         localStorage.setItem("userId", parsedUser.id);
 
-        console.log("User data:", parsedUser);
-
         navigate(`/home/${parsedUser.id}`, { replace: true });
       } catch (error) {
         console.error("Failed to parse user data from URL", error);

@@ -3,37 +3,49 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only ./src/index.ts",
     "build": "tsc",
-    "start": "node ./dist/index.js"
+    "start": "node --experimental-strip-types --import=extensionless/register ./src/index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "extensionless": {
+    "lookFor": [
+      "ts",
+      "js"
+    ]
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
     "@types/cors": "^2.8.17",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/multer": "^2.0.0",
+    "@types/nodemailer": "^7.0.3",
     "@types/passport": "^1.0.17",
     "@types/passport-google-oauth20": "^2.0.16",
     "@types/uuid": "^10.0.0",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "extensionless": "^2.0.6",
     "firebase": "^11.6.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.503.0",
     "multer": "^2.0.2",
+    "nodemailer": "^8.0.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.14.1",
     "postgres": "^3.4.5",
+    "resend": "^6.9.2",
     "sequelize": "^6.37.7",
     "server": "file:",
+    "tsx": "^4.21.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

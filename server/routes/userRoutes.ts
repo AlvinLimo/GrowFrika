@@ -1,11 +1,19 @@
+// backend/routes/userRoutes.ts
 import express from 'express';
-import { createUser, getUsers, loginUser, getUserByID } from '../controllers/userController';
+import {createUser, verifyEmail, loginUser, getUserByID, updateUser, setPassword, getUsers} from '../controllers/userController';
+import { authenticateToken } from '../middleware/jwtauth'; // You'll need this
 
 const router = express.Router();
 
-router.post('/create', createUser);
-router.get('/get', getUsers);
+// Public routes
+router.post('/register', createUser);
+router.post('/verify-email', verifyEmail);
 router.post('/login', loginUser);
-router.get('/getbyID/:id', getUserByID)
+
+// Protected routes (require authentication)
+router.get('/getbyID/:id', authenticateToken, getUserByID);
+router.patch('/update/:id', authenticateToken, updateUser);
+router.post('/set-password/:id', authenticateToken, setPassword);
+router.get('/all', authenticateToken, getUsers); // Admin only ideally
 
 export default router;

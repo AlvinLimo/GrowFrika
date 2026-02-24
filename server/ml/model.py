@@ -1,5 +1,3 @@
-# Enhanced model.py with image validation
-
 import os
 # Suppress TensorFlow messages BEFORE importing tensorflow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -50,8 +48,7 @@ IMG_SIZE = (128, 128)
 
 def validate_image_content(img_path):
     """
-    Validates if the image contains a coffee leaf using multiple approaches
-    Returns: dict with validation results
+    Multi-layered validation to detect if image is a coffee leaf
     """
     try:
         # Load image
@@ -63,100 +60,140 @@ def validate_image_content(img_path):
                 "suggestion": "Please upload a valid image file (JPG, PNG, etc.)"
             }
         
-        # Convert to RGB for analysis
+        # Convert to RGB
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         
-        # 1. Check if image is mostly green (leaf-like)
-        green_score = check_green_content(img_rgb)
+        # Run all validation checks
+        checks = {
+            "green_content": check_green_content(img_rgb),
+            "leaf_shape": check_leaf_shapes(img),
+            "texture": check_texture_features(img),
+            "color_distribution": check_color_distribution(img_rgb),
+            "size_quality": check_image_dimensions(img)
+        }
         
-        # 2. Check for leaf-like shapes/edges
-        shape_score = check_leaf_shapes(img)
+        print(f"Validation scores: {checks}", file=sys.stderr)
         
-        # 3. Check image complexity (not too simple/not too complex)
-        complexity_score = check_image_complexity(img)
+        # Calculate weighted score with STRICTER weights for green content
+        total_score = (
+            checks["green_content"] * 0.35 +  # Increased from 0.35
+            checks["leaf_shape"] * 0.25 +
+            checks["texture"] * 0.20 +  # Reduced from 0.20
+            checks["color_distribution"] * 0.15 +  # Reduced from 0.15
+            checks["size_quality"] * 0.05
+        )
         
-        # 4. Check size and aspect ratio
-        size_check = check_image_dimensions(img)
+        print(f"Total validation score: {total_score:.3f}", file=sys.stderr)
         
-        print(f"Validation scores - Green: {green_score:.2f}, Shape: {shape_score:.2f}, Complexity: {complexity_score:.2f}", file=sys.stderr)
-        
-        # Combine scores to make decision
-        total_score = (green_score * 0.4) + (shape_score * 0.3) + (complexity_score * 0.2) + (size_check * 0.1)
-        
-        if total_score < 0.3:  # Threshold for rejection
-            if green_score < 0.2:
+        # STRICTER threshold - require higher score to pass
+        if total_score < 0.25:  # Changed from 0.25
+            if checks["green_content"] < 0.15:  # Changed from 0.15
                 return {
                     "is_valid": False,
-                    "reason": "Image doesn't appear to contain plant/leaf material",
-                    "suggestion": "Please upload a clear photo of a coffee leaf"
+                    "reason": "No plant material detected - image appears to be a non-plant object",
+                    "suggestion": "Please upload a photo of a coffee plant leaf",
+                    "validation_score": total_score
                 }
-            elif shape_score < 0.2:
+            elif checks["leaf_shape"] < 0.2:  # Changed from 0.2
                 return {
                     "is_valid": False,
-                    "reason": "Image appears to show the whole plant or multiple leaves",
-                    "suggestion": "Please upload a photo focusing on a single coffee leaf for better accuracy"
+                    "reason": "No leaf-like structure detected in the image",
+                    "suggestion": "Please upload a clear photo focusing on a single coffee leaf",
+                    "validation_score": total_score
                 }
             else:
                 return {
                     "is_valid": False,
-                    "reason": "Image quality or content not suitable for analysis",
-                    "suggestion": "Please upload a clear, well-lit photo of a single coffee leaf"
+                    "reason": "Image content not suitable for coffee leaf analysis",
+                    "suggestion": "Please upload a clear, well-lit photo of a coffee leaf against a simple background",
+                    "validation_score": total_score
                 }
+        
+        # Additional check: Even if total score passes, green content MUST be reasonable
+        if checks["green_content"] < 0.2:  # NEW CHECK
+            return {
+                "is_valid": False,
+                "reason": "Insufficient plant material detected in the image",
+                "suggestion": "Please ensure the image clearly shows a coffee leaf with visible green color",
+                "validation_score": total_score
+            }
         
         return {
             "is_valid": True,
             "confidence": total_score,
-            "reason": "Image appears to contain a suitable coffee leaf"
+            "reason": "Image appears to contain a coffee leaf",
+            "validation_score": total_score
         }
         
     except Exception as e:
         print(f"Error in image validation: {e}", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        # On validation error, be CONSERVATIVE and reject
         return {
-            "is_valid": True,  # Default to allowing if validation fails
-            "reason": "Could not validate image, proceeding with prediction"
+            "is_valid": False,
+            "reason": "Could not properly analyze the image",
+            "suggestion": "Please upload a clear photo of a coffee leaf",
+            "validation_score": 0.0
         }
-
+    
 def check_green_content(img_rgb):
     """
-    Check if image has sufficient green content (indicating plant material)
+    Enhanced green content detection for plant material - STRICTER VERSION
     """
     try:
         # Convert to HSV for better color analysis
         img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
         
-        # Define green color range in HSV
-        lower_green1 = np.array([35, 40, 40])
-        upper_green1 = np.array([85, 255, 255])
+        # Multiple green ranges to catch different shades
+        # Healthy green leaves
+        lower_green1 = np.array([30, 30, 30])
+        upper_green1 = np.array([90, 255, 255])
         
-        # Create mask for green pixels
-        green_mask = cv2.inRange(img_hsv, lower_green1, upper_green1)
+        # Yellowish green (diseased leaves)
+        lower_green2 = np.array([20, 20, 20])
+        upper_green2 = np.array([40, 255, 255])
         
-        # Calculate percentage of green pixels
+        # Create masks
+        mask1 = cv2.inRange(img_hsv, lower_green1, upper_green1)
+        mask2 = cv2.inRange(img_hsv, lower_green2, upper_green2)
+        green_mask = cv2.bitwise_or(mask1, mask2)
+        
+        # Calculate green percentage
         green_pixels = np.sum(green_mask > 0)
         total_pixels = img_rgb.shape[0] * img_rgb.shape[1]
         green_percentage = green_pixels / total_pixels
         
-        # Score based on green content (0.2-0.8 is good range for leaves)
-        if green_percentage < 0.1:
-            return 0.0  # Too little green
-        elif green_percentage > 0.8:
-            return 0.3  # Maybe too much green (whole plant?)
-        else:
-            return min(1.0, green_percentage * 2)  # Good green content
+        print(f"Green content: {green_percentage:.2%}", file=sys.stderr)
+        
+        # STRICTER Scoring logic
+        if green_percentage < 0.12:  # Changed from 0.08 - Too little green
+            return 0.0
+        elif green_percentage < 0.20:  # Changed from 0.15 - Minimal green
+            return 0.2  # Changed from 0.3
+        elif green_percentage < 0.30:  # Changed from 0.25 - Low green
+            return 0.5
+        elif green_percentage < 0.70:  # Good green content
+            return min(1.0, green_percentage * 1.5)
+        else:  # Too much uniform green
+            return 0.4
             
-    except:
-        return 0.5  # Default if analysis fails
+    except Exception as e:
+        print(f"Error in green content check: {e}", file=sys.stderr)
+        return 0.0  # Changed from 0.5 - fail on error
+
 
 def check_leaf_shapes(img):
     """
-    Check for leaf-like shapes and edges
+    Detect leaf-like shapes using contour analysis
     """
     try:
-        # Convert to grayscale
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         
-        # Apply edge detection
-        edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+        # Apply bilateral filter to reduce noise while keeping edges
+        filtered = cv2.bilateralFilter(gray, 9, 75, 75)
+        
+        # Edge detection
+        edges = cv2.Canny(filtered, 30, 100)
         
         # Find contours
         contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -164,73 +201,162 @@ def check_leaf_shapes(img):
         if not contours:
             return 0.1
         
-        # Analyze largest contours (potential leaves)
-        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
+        # Analyze largest contours
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
         
-        leaf_scores = []
+        image_area = img.shape[0] * img.shape[1]
+        best_score = 0.0
+        
         for contour in contours:
             area = cv2.contourArea(contour)
-            if area < 100:  # Too small
+            
+            # Skip too small or too large contours
+            if area < (image_area * 0.02) or area > (image_area * 0.95):
                 continue
-                
-            # Calculate aspect ratio and solidity
+            
+            # Get bounding rectangle
             x, y, w, h = cv2.boundingRect(contour)
-            aspect_ratio = float(w) / h
+            aspect_ratio = float(w) / h if h > 0 else 0
+            
+            # Calculate circularity and solidity
+            perimeter = cv2.arcLength(contour, True)
+            circularity = 4 * np.pi * area / (perimeter * perimeter) if perimeter > 0 else 0
             
             hull = cv2.convexHull(contour)
             hull_area = cv2.contourArea(hull)
             solidity = float(area) / hull_area if hull_area > 0 else 0
             
-            # Leaf-like characteristics: reasonable aspect ratio and solidity
-            if 0.3 <= aspect_ratio <= 3.0 and 0.5 <= solidity <= 0.95:
-                leaf_scores.append(min(1.0, solidity + (1 - abs(1 - aspect_ratio))))
+            # Leaf characteristics:
+            # - Aspect ratio: 0.4 to 2.5 (leaves are somewhat elongated)
+            # - Circularity: 0.3 to 0.8 (not perfect circle, not too irregular)
+            # - Solidity: 0.6 to 0.95 (some concavity but not too much)
+            score = 0.0
+            
+            if 0.4 <= aspect_ratio <= 2.5:
+                score += 0.35
+            if 0.3 <= circularity <= 0.8:
+                score += 0.35
+            if 0.6 <= solidity <= 0.95:
+                score += 0.3
+            
+            best_score = max(best_score, score)
         
-        return max(leaf_scores) if leaf_scores else 0.2
+        print(f"Leaf shape score: {best_score:.2f}", file=sys.stderr)
+        return best_score
         
-    except:
+    except Exception as e:
+        print(f"Error in leaf shape check: {e}", file=sys.stderr)
         return 0.5
 
-def check_image_complexity(img):
+def check_texture_features(img):
     """
-    Check if image has appropriate complexity (not too simple, not too busy)
+    Analyze texture to distinguish leaves from other objects
     """
     try:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         
-        # Calculate image variance (measure of complexity)
-        variance = cv2.Laplacian(gray, cv2.CV_64F).var()
+        # Calculate variance (texture complexity)
+        laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
         
-        # Normalize variance to 0-1 scale
-        # Good leaf images typically have variance between 100-2000
-        if variance < 50:
-            return 0.1  # Too simple/blurry
-        elif variance > 3000:
-            return 0.3  # Too complex/noisy
+        # Calculate gradient magnitude (edge strength)
+        sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+        sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+        gradient_magnitude = np.sqrt(sobelx**2 + sobely**2).mean()
+        
+        # Leaves typically have moderate texture (not too smooth, not too busy)
+        texture_score = 0.0
+        
+        # Laplacian variance scoring
+        if 100 < laplacian_var < 2000:
+            texture_score += 0.5
+        elif 50 < laplacian_var <= 100 or 2000 <= laplacian_var < 3000:
+            texture_score += 0.3
         else:
-            return min(1.0, variance / 1500)
-            
-    except:
+            texture_score += 0.1
+        
+        # Gradient magnitude scoring
+        if 10 < gradient_magnitude < 50:
+            texture_score += 0.5
+        elif 5 < gradient_magnitude <= 10 or 50 <= gradient_magnitude < 80:
+            texture_score += 0.3
+        else:
+            texture_score += 0.1
+        
+        print(f"Texture score: {texture_score:.2f} (Laplacian: {laplacian_var:.1f}, Gradient: {gradient_magnitude:.1f})", file=sys.stderr)
+        return texture_score
+        
+    except Exception as e:
+        print(f"Error in texture check: {e}", file=sys.stderr)
+        return 0.5
+
+def check_color_distribution(img_rgb):
+    """
+    Check if color distribution matches leaf patterns
+    """
+    try:
+        # Calculate color histogram
+        hist_r = cv2.calcHist([img_rgb], [0], None, [256], [0, 256])
+        hist_g = cv2.calcHist([img_rgb], [1], None, [256], [0, 256])
+        hist_b = cv2.calcHist([img_rgb], [2], None, [256], [0, 256])
+        
+        # Normalize
+        hist_r = hist_r.flatten() / hist_r.sum()
+        hist_g = hist_g.flatten() / hist_g.sum()
+        hist_b = hist_b.flatten() / hist_b.sum()
+        
+        # Check if green channel is dominant
+        green_dominance = np.sum(hist_g[50:150]) / np.sum(hist_r[50:150] + hist_b[50:150] + 0.001)
+        
+        # Calculate color variance (diverse colors suggest leaf with spots/disease)
+        color_std = np.std([np.std(img_rgb[:,:,0]), np.std(img_rgb[:,:,1]), np.std(img_rgb[:,:,2])])
+        
+        score = 0.0
+        
+        # Green should be somewhat dominant
+        if green_dominance > 1.2:
+            score += 0.5
+        elif green_dominance > 0.8:
+            score += 0.3
+        else:
+            score += 0.1
+        
+        # Should have some color variation (disease spots, veins)
+        if 20 < color_std < 60:
+            score += 0.5
+        elif 10 < color_std <= 20 or 60 <= color_std < 80:
+            score += 0.3
+        else:
+            score += 0.1
+        
+        print(f"Color distribution score: {score:.2f} (Green dominance: {green_dominance:.2f})", file=sys.stderr)
+        return score
+        
+    except Exception as e:
+        print(f"Error in color distribution check: {e}", file=sys.stderr)
         return 0.5
 
 def check_image_dimensions(img):
     """
-    Check if image dimensions are reasonable
+    Check if image dimensions and quality are reasonable
     """
     try:
         height, width = img.shape[:2]
         
         # Check minimum size
-        if height < 50 or width < 50:
+        if height < 64 or width < 64:
             return 0.0
         
-        # Check aspect ratio (shouldn't be too extreme)
+        # Check aspect ratio
         aspect_ratio = max(width, height) / min(width, height)
-        if aspect_ratio > 5:  # Too elongated
+        if aspect_ratio > 4:  # Too elongated
             return 0.2
+        elif aspect_ratio > 3:
+            return 0.5
+        else:
+            return 1.0
         
-        return 1.0
-        
-    except:
+    except Exception as e:
+        print(f"Error in dimension check: {e}", file=sys.stderr)
         return 0.5
 
 def preprocess_image(img_path):
@@ -248,9 +374,9 @@ def preprocess_image(img_path):
     except Exception as e:
         raise RuntimeError(f"Failed to preprocess image {img_path}: {e}")
 
-def predict_image(img_path, confidence_threshold=0.7):
+def predict_image(img_path, confidence_threshold=0.50):  # Increased from 0.45
     """
-    Predicts disease from a coffee leaf image with validation
+    Predicts disease from a coffee leaf image with comprehensive validation
     """
     try:
         print("Starting image validation...", file=sys.stderr)
@@ -264,11 +390,12 @@ def predict_image(img_path, confidence_threshold=0.7):
                 "error": validation_result["reason"],
                 "suggestion": validation_result["suggestion"],
                 "advice": validation_result["suggestion"],
-                "predicted_class": None,
-                "confidence": 0.0
+                "predicted_class": "Not a Coffee Leaf",
+                "confidence": 0.0,
+                "validation_score": validation_result.get("validation_score", 0.0)
             }
         
-        print("Image validation passed, proceeding with prediction...", file=sys.stderr)
+        print(f"Image validation passed (score: {validation_result['confidence']:.3f}), proceeding with prediction...", file=sys.stderr)
         
         # Proceed with normal prediction
         img_array = preprocess_image(img_path)
@@ -276,30 +403,69 @@ def predict_image(img_path, confidence_threshold=0.7):
         class_idx = np.argmax(preds[0])
         confidence = float(preds[0][class_idx])
         
-        # Additional confidence check - if model is too confident on potentially wrong images
-        if confidence > 0.95 and validation_result.get("confidence", 1.0) < 0.5:
+        # Calculate prediction entropy (lower = more confident)
+        entropy = -np.sum(preds[0] * np.log(preds[0] + 1e-10))
+        
+        print(f"Prediction: {CLASS_NAMES[class_idx]} ({confidence:.2%}), Entropy: {entropy:.3f}", file=sys.stderr)
+        
+        # Cross-validate with image quality
+        validation_score = validation_result.get("confidence", 1.0)
+        
+        # STRICTER check: If validation score is low, reject even with high model confidence
+        if validation_score < 0.3:  # Changed from 0.4
             return {
-                "status": "low_quality_prediction",
-                "predicted_class": CLASS_NAMES[class_idx],
+                "status": "invalid_image",
+                "predicted_class": "Not a Coffee Leaf",
                 "confidence": confidence,
-                "warning": "Prediction confidence is high but image quality is questionable",
-                "suggestion": "For better accuracy, please upload a clearer photo of a single coffee leaf",
-                "advice": "Prediction is uncertain. " + 
-                      "Try uploading a sharper photo of just one coffee leaf.",
+                "validation_score": validation_score,
+                "error": "Image does not appear to be a coffee leaf",
+                "suggestion": "Please upload a clear photo of a single coffee leaf with good lighting",
+                "advice": "The uploaded image doesn't meet the criteria for a coffee leaf. Please upload a clear photo of a coffee plant leaf.",
                 "all_probabilities": {
                     CLASS_NAMES[i]: float(preds[0][i]) for i in range(len(CLASS_NAMES))
                 }
             }
         
+        # If model confidence is low
+        if confidence < confidence_threshold:
+            return {
+                "status": "low_quality_prediction",
+                "predicted_class": CLASS_NAMES[class_idx],
+                "confidence": confidence,
+                "validation_score": validation_score,
+                "warning": "Prediction confidence is too low",
+                "suggestion": "Please upload a clearer, well-lit image focusing on a single coffee leaf",
+                "advice": f"Detected {CLASS_NAMES[class_idx]} but with low confidence ({confidence:.1%}). Please upload a clearer image for accurate diagnosis.",
+                "all_probabilities": {
+                    CLASS_NAMES[i]: float(preds[0][i]) for i in range(len(CLASS_NAMES))
+                }
+            }
+        
+        # High entropy means uncertain prediction
+        if entropy > 1.0:
+            return {
+                "status": "low_quality_prediction",
+                "predicted_class": CLASS_NAMES[class_idx],
+                "confidence": confidence,
+                "validation_score": validation_score,
+                "warning": "Model is uncertain about this prediction",
+                "suggestion": "Try uploading a different angle or better quality image",
+                "advice": f"Detected {CLASS_NAMES[class_idx]} but the model is uncertain. Consider uploading another image for verification.",
+                "all_probabilities": {
+                    CLASS_NAMES[i]: float(preds[0][i]) for i in range(len(CLASS_NAMES))
+                }
+            }
+        
+        # Successful prediction
         result = {
             "status": "success",
             "predicted_class": CLASS_NAMES[class_idx],
             "confidence": confidence,
+            "validation_score": validation_score,
             "all_probabilities": {
                 CLASS_NAMES[i]: float(preds[0][i]) for i in range(len(CLASS_NAMES))
             },
-            "reliable": confidence >= confidence_threshold,
-            "image_quality": validation_result.get("confidence", 1.0),
+            "reliable": True,
             "advice": f"The leaf is classified as **{CLASS_NAMES[class_idx]}** "
                   f"with {confidence:.1%} confidence."
         }
@@ -307,4 +473,6 @@ def predict_image(img_path, confidence_threshold=0.7):
         return result
         
     except Exception as e:
+        print(f"Prediction error: {e}", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
         raise RuntimeError(f"Prediction failed: {e}")
