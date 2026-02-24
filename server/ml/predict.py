@@ -5,11 +5,11 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import sys
 import json
-import numpy as np
+import numpy as np # pyright: ignore[reportMissingImports]
 from PIL import Image
-from openai import OpenAI
+from openai import OpenAI # type: ignore
 from model import predict_image  # Ensure this import is correct
-import tensorflow as tf
+import tensorflow as tf # pyright: ignore[reportMissingModuleSource]
 
 # 🔹 Setup OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
