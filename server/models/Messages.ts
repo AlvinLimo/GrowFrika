@@ -15,14 +15,14 @@ interface MessageAttributes {
 interface MessageCreationAttributes extends Optional<MessageAttributes, 'message_id' | 'image_urls' | 'metadata'> {}
 
 export class Message extends Model<MessageAttributes, MessageCreationAttributes> implements MessageAttributes {
-    declare message_id: string;
-    declare convo_id: string;
-    declare role: 'user' | 'assistant' | 'system';
-    declare content: string;
-    declare image_urls?: string[];
-    declare metadata?: object;
-    declare readonly created_at: Date;
-    declare readonly updatedAt: Date;
+    public message_id!: string;
+    public convo_id!: string;
+    public role!: 'user' | 'assistant' | 'system';
+    public content!: string;
+    public image_urls?: string[];
+    public metadata?: object;
+    public readonly created_at!: Date;
+    public readonly updatedAt!: Date;
 }
 
 Message.init(

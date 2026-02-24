@@ -20,19 +20,19 @@ interface UserAttributes {
 interface UserCreationAttributes extends Optional<UserAttributes, 'user_id' | 'googleId' | 'password' | 'profilePicture' | 'verificationToken'> {}
 
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
-    declare user_id: string;
-    declare username: string;
-    declare email: string;
-    declare password?: string;
-    declare googleId?: string;
-    declare isGoogleUser: boolean;
-    declare hasPassword: boolean;
-    declare isVerified: boolean;
-    declare verificationToken?: string;
-    declare profilePicture?: string;
+    public user_id!: string;
+    public username!: string;
+    public email!: string;
+    public password?: string;
+    public googleId?: string;
+    public isGoogleUser!: boolean;
+    public hasPassword!: boolean;
+    public isVerified!: boolean;
+    public verificationToken?: string;
+    public profilePicture?: string;
 
-    declare readonly createdAt: Date;
-    declare readonly updatedAt: Date;
+    public readonly createdAt!: Date;
+    public readonly updatedAt!: Date;
 }
 
 User.init(
