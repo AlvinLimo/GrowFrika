@@ -1,5 +1,5 @@
 import express from 'express';
-import passport  from '../utils/passport'
+import passport  from '../utils/passport.js'
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 

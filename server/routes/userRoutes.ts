@@ -1,7 +1,7 @@
 // backend/routes/userRoutes.ts
 import express from 'express';
-import {createUser, verifyEmail, loginUser, getUserByID, updateUser, setPassword, getUsers} from '../controllers/userController';
-import { authenticateToken } from '../middleware/jwtauth'; // You'll need this
+import {createUser, verifyEmail, loginUser, getUserByID, updateUser, setPassword, getUsers} from '../controllers/userController.js';
+import { authenticateToken } from '../middleware/jwtauth.js'; // You'll need this
 
 const router = express.Router();
 

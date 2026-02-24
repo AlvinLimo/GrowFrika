@@ -1,14 +1,14 @@
 // Load environment variables first
-import './config';
+import './config.js';
 
 import express from 'express';
 import cors from 'cors';
-import userRoutes from '../routes/userRoutes';
-import sequelize from '../database/db';
-import authRoutes from '../routes/authRoutes';
-import passport from '../utils/passport';
-import mlRoutes from '../routes/mlRoutes';
-import { verifyMailer } from '../utils/mailer';
+import userRoutes from '../routes/userRoutes.js';
+import sequelize from '../database/db.js';
+import authRoutes from '../routes/authRoutes.js';
+import passport from '../utils/passport.js';
+import mlRoutes from '../routes/mlRoutes.js';
+import { verifyMailer } from '../utils/mailer.js';
 
 const app = express();
 const port = Number(process.env.PORT) || 10000;

@@ -1,6 +1,6 @@
 import { DataTypes, Model, type Optional } from 'sequelize';
-import sequelize from "../database/db";
-import { Message } from "./Messages";
+import sequelize from "../database/db.js";
+import { Message } from "./Messages.js";
 
 interface ConversationAttributes {
     convo_id: string;

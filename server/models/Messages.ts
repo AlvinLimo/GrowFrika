@@ -1,5 +1,5 @@
 import { DataTypes, Model, type Optional } from 'sequelize';
-import sequelize from '../database/db';
+import sequelize from '../database/db.js';
 
 interface MessageAttributes {
     message_id: string;

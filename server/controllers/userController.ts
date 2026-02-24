@@ -1,11 +1,11 @@
 // backend/controllers/userController.ts
 import express, { type Request, type Response } from 'express';
-import User from '../models/User';
+import User from '../models/User.js';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 import { Op } from 'sequelize';
 import jwt from 'jsonwebtoken';
-import transporter from '../utils/mailer';
+import transporter from '../utils/mailer.js';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 const FRONTEND_URL = process.env.CLIENT_URL

@@ -3,10 +3,10 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { spawn } from "child_process";
-import { authenticateToken } from "../middleware/jwtauth";
-import { Conversation } from "../models/Conversations"
-import { Message } from "../models/Messages";
-import supabase from "../config/supabase";
+import { authenticateToken } from "../middleware/jwtauth.js";
+import { Conversation } from "../models/Conversations.js"
+import { Message } from "../models/Messages.js";
+import supabase from "../config/supabase.js";
 
 Conversation.hasMany(Message, {
     foreignKey: 'convo_id',
