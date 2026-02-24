@@ -88,7 +88,7 @@ router.post("/predict", authenticateToken, upload.single("image"), async (req: R
       return;
     }
 
-    const pythonProcess = spawn("python", [scriptPath, imgPath], { shell: true });
+    const pythonProcess = spawn("python3", [scriptPath, imgPath], { shell: true });
 
     let resultData = "";
     let errorData = "";
@@ -329,7 +329,7 @@ router.post("/chat", authenticateToken, express.json(), async (req: Request, res
       }
 
       const pythonProcess = spawn(
-        "python", 
+        "python3", 
         [scriptPath, tempFilePath],
         { shell: true }
       );
